@@ -5,7 +5,7 @@ import '../widgets/acades_drawer.dart';
 import '../models/chat_message.dart';
 
 class FarmRecordsScreen extends StatelessWidget {
-  FarmRecordsScreen({super.key});
+  const FarmRecordsScreen({super.key});
 
   final List<_FarmRecord> _records = const [
     _FarmRecord(
@@ -31,13 +31,8 @@ class FarmRecordsScreen extends StatelessWidget {
     ),
   ];
 
-  final List<ChatHistory> _history = [
-    ChatHistory(
-      id: '1',
-      title: 'Regional tracking containing...',
-      lastMessage: '',
-      updatedAt: DateTime(2024, 11, 2),
-    ),
+  final List<ChatHistory> _history = const [
+    ChatHistory(id: '1', title: 'Regional tracking containing...', lastMessage: '', updatedAt: null as dynamic),
   ];
 
   @override
