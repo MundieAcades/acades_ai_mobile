@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../auth/phone_auth_screen.dart';
 import 'steps/welcome_step.dart';
+import 'steps/username_step.dart';
 import 'steps/crop_step.dart';
 import 'steps/location_step.dart';
 import 'steps/land_size_step.dart';
@@ -10,12 +11,14 @@ import 'steps/all_set_step.dart';
 
 /// Holds all the farmer data collected during onboarding
 class FarmerProfile {
+  String username;
   List<String> crops;
   String district;
   String landSize;
   String gender;
 
   FarmerProfile({
+    this.username = '',
     this.crops = const [],
     this.district = '',
     this.landSize = '',
@@ -23,12 +26,14 @@ class FarmerProfile {
   });
 
   FarmerProfile copyWith({
+    String? username,
     List<String>? crops,
     String? district,
     String? landSize,
     String? gender,
   }) {
     return FarmerProfile(
+      username: username ?? this.username,
       crops: crops ?? this.crops,
       district: district ?? this.district,
       landSize: landSize ?? this.landSize,
@@ -50,10 +55,10 @@ class _OnboardingFlowState extends State<OnboardingFlow>
   int _currentStep = 0;
   FarmerProfile _profile = FarmerProfile();
 
-  // Steps: 0=welcome, 1=crops, 2=location, 3=landsize, 4=gender, 5=allset
-  static const int _totalSteps = 6;
-  // Progress bar covers steps 1–4 (the quiz steps)
-  static const int _quizSteps = 4;
+  // Steps: 0=welcome, 1=username, 2=crops, 3=location, 4=landsize, 5=gender, 6=allset
+  static const int _totalSteps = 7;
+  // Progress bar covers steps 1–5 (the quiz steps)
+  static const int _quizSteps = 5;
 
   late AnimationController _progressController;
   late Animation<double> _progressAnim;
@@ -96,7 +101,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
-      // Update progress for quiz steps 1–4
+      // Update progress for quiz steps 1–5
       if (_currentStep >= 1 && _currentStep <= _quizSteps) {
         _animateProgress(_currentStep / _quizSteps);
       } else if (_currentStep > _quizSteps) {
@@ -123,10 +128,8 @@ class _OnboardingFlowState extends State<OnboardingFlow>
   void _goToAuth() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) =>
-            PhoneAuthScreen(profile: _profile),
-        transitionsBuilder: (_, anim, __, child) =>
-            SlideTransition(
+        pageBuilder: (_, __, ___) => PhoneAuthScreen(profile: _profile),
+        transitionsBuilder: (_, anim, __, child) => SlideTransition(
           position: Tween<Offset>(
             begin: const Offset(1, 0),
             end: Offset.zero,
@@ -140,7 +143,8 @@ class _OnboardingFlowState extends State<OnboardingFlow>
 
   bool get _showProgressBar =>
       _currentStep >= 1 && _currentStep <= _quizSteps + 1;
-  bool get _showBackButton => _currentStep > 0 && _currentStep < _totalSteps - 1;
+  bool get _showBackButton =>
+      _currentStep > 0 && _currentStep < _totalSteps - 1;
 
   @override
   Widget build(BuildContext context) {
@@ -161,31 +165,40 @@ class _OnboardingFlowState extends State<OnboardingFlow>
                   // Step 0: Welcome
                   WelcomeStep(onNext: _nextStep),
 
-                  // Step 1: What do you grow?
+                  // Step 1: What's your name?
+                  UsernameStep(
+                    username: _profile.username,
+                    onChanged: (u) => setState(
+                        () => _profile = _profile.copyWith(username: u)),
+                    onNext:
+                        _profile.username.trim().isNotEmpty ? _nextStep : null,
+                  ),
+
+                  // Step 2: What do you grow?
                   CropStep(
                     selectedCrops: _profile.crops,
-                    onChanged: (crops) =>
-                        setState(() => _profile = _profile.copyWith(crops: crops)),
+                    onChanged: (crops) => setState(
+                        () => _profile = _profile.copyWith(crops: crops)),
                     onNext: _profile.crops.isNotEmpty ? _nextStep : null,
                   ),
 
-                  // Step 2: Where are you located?
+                  // Step 3: Where are you located?
                   LocationStep(
                     selected: _profile.district,
-                    onChanged: (d) =>
-                        setState(() => _profile = _profile.copyWith(district: d)),
+                    onChanged: (d) => setState(
+                        () => _profile = _profile.copyWith(district: d)),
                     onNext: _profile.district.isNotEmpty ? _nextStep : null,
                   ),
 
-                  // Step 3: How big is your land?
+                  // Step 4: How big is your land?
                   LandSizeStep(
                     selected: _profile.landSize,
-                    onChanged: (s) =>
-                        setState(() => _profile = _profile.copyWith(landSize: s)),
+                    onChanged: (s) => setState(
+                        () => _profile = _profile.copyWith(landSize: s)),
                     onNext: _profile.landSize.isNotEmpty ? _nextStep : null,
                   ),
 
-                  // Step 4: Gender
+                  // Step 5: Gender
                   GenderStep(
                     selected: _profile.gender,
                     onChanged: (g) =>
@@ -193,7 +206,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
                     onNext: _profile.gender.isNotEmpty ? _nextStep : null,
                   ),
 
-                  // Step 5: All set!
+                  // Step 6: All set!
                   AllSetStep(
                     profile: _profile,
                     onContinue: _goToAuth,
@@ -209,9 +222,14 @@ class _OnboardingFlowState extends State<OnboardingFlow>
 
   Widget _buildHeader() {
     final quizStep = (_currentStep - 1).clamp(0, _quizSteps);
-    final labels = ['What you grow', 'Your location', 'Land size', 'About you'];
-    final label =
-        quizStep < labels.length ? labels[quizStep] : 'Almost done!';
+    final labels = [
+      'Your name',
+      'What you grow',
+      'Your location',
+      'Land size',
+      'About you'
+    ];
+    final label = quizStep < labels.length ? labels[quizStep] : 'Almost done!';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -229,8 +247,8 @@ class _OnboardingFlowState extends State<OnboardingFlow>
                     decoration: BoxDecoration(
                       color: AppColors.primaryIcon,
                       borderRadius: BorderRadius.circular(10),
-                      border:
-                          Border.all(color: AppColors.primaryBorder, width: 0.5),
+                      border: Border.all(
+                          color: AppColors.primaryBorder, width: 0.5),
                     ),
                     child: const Icon(Icons.arrow_back_ios_new_rounded,
                         size: 16, color: AppColors.primary),
@@ -263,8 +281,8 @@ class _OnboardingFlowState extends State<OnboardingFlow>
                 decoration: BoxDecoration(
                   color: AppColors.primaryIcon,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: AppColors.primaryBorder, width: 0.5),
+                  border:
+                      Border.all(color: AppColors.primaryBorder, width: 0.5),
                 ),
                 child: Text(
                   '${_currentStep > _quizSteps ? _quizSteps : _currentStep}/$_quizSteps',

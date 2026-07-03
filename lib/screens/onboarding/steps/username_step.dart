@@ -41,8 +41,7 @@ class _UsernameStepState extends State<UsernameStep> {
     return StepShell(
       emoji: '👤',
       question: 'What\'s your\nname?',
-      description:
-          'This helps us personalise your experience on the platform.',
+      description: 'This helps us personalise your experience on the platform.',
       onNext: _controller.text.trim().isNotEmpty ? widget.onNext : null,
       buttonLabel:
           _controller.text.trim().isEmpty ? 'Enter your name' : 'Continue',
@@ -58,7 +57,7 @@ class _UsernameStepState extends State<UsernameStep> {
             },
             style: const TextStyle(
               fontSize: 16,
-              color: AppColors.text,
+              color: Colors.back,
               fontWeight: FontWeight.w500,
             ),
             decoration: InputDecoration(
