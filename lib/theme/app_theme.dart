@@ -41,14 +41,15 @@ class AppTheme {
         seedColor: AppColors.primary,
         brightness: Brightness.light,
       ),
-      textTheme: GoogleFonts.robotoTextTheme(),
+      // Use Noto Sans to increase coverage of international glyphs
+      textTheme: GoogleFonts.notoSansTextTheme(),
       scaffoldBackgroundColor: AppColors.scaffoldBg,
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        titleTextStyle: GoogleFonts.roboto(
+        titleTextStyle: GoogleFonts.notoSans(
           fontSize: 16,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,

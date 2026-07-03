@@ -40,9 +40,9 @@ class _TermsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
+      children: [
         _LastUpdated('June 2025'),
         SizedBox(height: 20),
         _Section(
@@ -95,9 +95,9 @@ class _PrivacyContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
+      children: [
         _LastUpdated('June 2025'),
         SizedBox(height: 20),
         _Section(

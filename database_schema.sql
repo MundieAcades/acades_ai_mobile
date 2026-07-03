@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS chat_messages (
   user_id UUID NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
   role TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
   content TEXT NOT NULL,
+  embedding vector(1536),
   image_urls JSONB DEFAULT '[]',
   metadata JSONB DEFAULT '{}',
   created_at TIMESTAMP DEFAULT now()

@@ -68,8 +68,12 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
   @override
   void dispose() {
     _timer?.cancel();
-    for (final c in _ctrls) c.dispose();
-    for (final n in _nodes) n.dispose();
+    for (final c in _ctrls) {
+      c.dispose();
+    }
+    for (final n in _nodes) {
+      n.dispose();
+    }
     _shakeCtrl.dispose();
     _successCtrl.dispose();
     super.dispose();
@@ -149,7 +153,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
         _errorMsg = 'Unable to verify code. Please try again.';
       });
       _shakeCtrl.forward(from: 0);
-      for (final c in _ctrls) c.clear();
+      for (final c in _ctrls) {
+        c.clear();
+      }
       _nodes[0].requestFocus();
     }
   }
@@ -331,8 +337,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                 ),
 
                 const SizedBox(height: 16),
-                Center(
-                  child: const Text(
+                const Center(
+                  child: Text(
                     'Enter the 6-digit code sent to your phone.',
                     style: TextStyle(
                       fontSize: 11,

@@ -34,7 +34,7 @@ class AcadesDrawer extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 16, 16, 8),
               child: Row(
                 children: [
-                  Text(
+                  const Text(
                     'Acades AI',
                     style: TextStyle(
                       fontSize: 20,

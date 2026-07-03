@@ -12,7 +12,7 @@ class WeatherScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            AcadesAppBar(),
+            const AcadesAppBar(),
             const Divider(height: 1),
             Expanded(
               child: ListView(
@@ -42,18 +42,18 @@ class WeatherScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: AppColors.homeGradient,
                       borderRadius: BorderRadius.circular(16),
-                      border:
-                          Border.all(color: AppColors.primaryBorder, width: 0.5),
+                      border: Border.all(
+                          color: AppColors.primaryBorder, width: 0.5),
                     ),
-                    child: Row(
+                    child: const Row(
                       children: [
-                        const Icon(Icons.wb_sunny_outlined,
+                        Icon(Icons.wb_sunny_outlined,
                             color: AppColors.primary, size: 48),
-                        const SizedBox(width: 20),
+                        SizedBox(width: 20),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               '26°C',
                               style: TextStyle(
                                 fontSize: 36,
@@ -68,7 +68,7 @@ class WeatherScreen extends StatelessWidget {
                                 color: AppColors.textSecondary,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             Text(
                               'Good day for field work',
                               style: TextStyle(

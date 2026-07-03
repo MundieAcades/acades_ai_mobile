@@ -151,11 +151,31 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   final List<ChatHistory> _history = [
-    ChatHistory(id: '1', title: 'Regional tracking containing...', lastMessage: '', updatedAt: DateTime.now()),
-    ChatHistory(id: '2', title: 'Soya planting guide for Lilongwe', lastMessage: '', updatedAt: DateTime.now()),
-    ChatHistory(id: '3', title: 'Pest detection results — maize', lastMessage: '', updatedAt: DateTime.now()),
-    ChatHistory(id: '4', title: 'Weather forecast Lilongwe', lastMessage: '', updatedAt: DateTime.now()),
-    ChatHistory(id: '5', title: 'How to apply Inoculum on soya', lastMessage: '', updatedAt: DateTime.now()),
+    ChatHistory(
+        id: '1',
+        title: 'Regional tracking containing...',
+        lastMessage: '',
+        updatedAt: DateTime.now()),
+    ChatHistory(
+        id: '2',
+        title: 'Soya planting guide for Lilongwe',
+        lastMessage: '',
+        updatedAt: DateTime.now()),
+    ChatHistory(
+        id: '3',
+        title: 'Pest detection results — maize',
+        lastMessage: '',
+        updatedAt: DateTime.now()),
+    ChatHistory(
+        id: '4',
+        title: 'Weather forecast Lilongwe',
+        lastMessage: '',
+        updatedAt: DateTime.now()),
+    ChatHistory(
+        id: '5',
+        title: 'How to apply Inoculum on soya',
+        lastMessage: '',
+        updatedAt: DateTime.now()),
   ];
 
   @override
@@ -317,9 +337,9 @@ class _ChatScreenState extends State<ChatScreen> {
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.aiBubble,
-              borderRadius: const BorderRadius.only(
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
                 bottomRight: Radius.circular(16),
@@ -354,9 +374,9 @@ class _ChatScreenState extends State<ChatScreen> {
           Flexible(
             child: Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.aiBubble,
-                borderRadius: const BorderRadius.only(
+                borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
                   bottomRight: Radius.circular(16),
@@ -539,7 +559,8 @@ class _MarkdownText extends StatelessWidget {
         // Bullet
         spans.add(const TextSpan(
           text: '• ',
-          style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
+          style:
+              TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
         ));
         spans.addAll(_parseInlineBold(line.substring(2)));
       } else {

@@ -100,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onHistoryTap: (h) => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => ChatScreen(initialMessage: ''),
+            builder: (_) => const ChatScreen(initialMessage: ''),
           ),
         ),
       ),
@@ -243,7 +243,8 @@ class _HomeScreenState extends State<HomeScreen> {
               QuickActionChip(
                 icon: Icons.cloud_outlined,
                 label: 'Weather Advice',
-                onTap: () => _startChat('Give me weather advice for farming today'),
+                onTap: () =>
+                    _startChat('Give me weather advice for farming today'),
               ),
               const SizedBox(width: 10),
               QuickActionChip(
@@ -266,7 +267,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.menu_book_outlined, size: 16, color: AppColors.primary),
+                  Icon(Icons.menu_book_outlined,
+                      size: 16, color: AppColors.primary),
                   SizedBox(width: 6),
                   Text(
                     'Learn Step by Step',

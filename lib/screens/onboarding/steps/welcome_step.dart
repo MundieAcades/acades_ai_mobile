@@ -113,9 +113,9 @@ class _WelcomeStepState extends State<WelcomeStep>
               position: _contentSlide,
               child: FadeTransition(
                 opacity: _contentOpacity,
-                child: Column(
+                child: const Column(
                   children: [
-                    const Text(
+                    Text(
                       'Welcome to\nAcades AI',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -126,8 +126,8 @@ class _WelcomeStepState extends State<WelcomeStep>
                         letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    const Text(
+                    SizedBox(height: 16),
+                    Text(
                       'Your personal farming assistant.\nLet\'s learn a little about you so we can give you the best advice.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -136,18 +136,26 @@ class _WelcomeStepState extends State<WelcomeStep>
                         height: 1.6,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
 
                     // Feature pills
                     Wrap(
                       alignment: WrapAlignment.center,
                       spacing: 8,
                       runSpacing: 8,
-                      children: const [
-                        _FeaturePill(icon: Icons.chat_bubble_outline_rounded, label: 'AI Chat'),
-                        _FeaturePill(icon: Icons.document_scanner_outlined, label: 'Crop Detection'),
-                        _FeaturePill(icon: Icons.cloud_outlined, label: 'Weather Alerts'),
-                        _FeaturePill(icon: Icons.assignment_outlined, label: 'Farm Records'),
+                      children: [
+                        _FeaturePill(
+                            icon: Icons.chat_bubble_outline_rounded,
+                            label: 'AI Chat'),
+                        _FeaturePill(
+                            icon: Icons.document_scanner_outlined,
+                            label: 'Crop Detection'),
+                        _FeaturePill(
+                            icon: Icons.cloud_outlined,
+                            label: 'Weather Alerts'),
+                        _FeaturePill(
+                            icon: Icons.assignment_outlined,
+                            label: 'Farm Records'),
                       ],
                     ),
                   ],

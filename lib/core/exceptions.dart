@@ -17,56 +17,36 @@ class AppException implements Exception {
 
 class AuthException extends AppException {
   AuthException({
-    required String message,
-    required String code,
-    dynamic originalError,
-    StackTrace? stackTrace,
-  }) : super(
-          message: message,
-          code: code,
-          originalError: originalError,
-          stackTrace: stackTrace,
-        );
+    required super.message,
+    required super.code,
+    super.originalError,
+    super.stackTrace,
+  });
 }
 
 class NetworkException extends AppException {
   NetworkException({
-    required String message,
-    required String code,
-    dynamic originalError,
-    StackTrace? stackTrace,
-  }) : super(
-          message: message,
-          code: code,
-          originalError: originalError,
-          stackTrace: stackTrace,
-        );
+    required super.message,
+    required super.code,
+    super.originalError,
+    super.stackTrace,
+  });
 }
 
 class ValidationException extends AppException {
   ValidationException({
-    required String message,
-    required String code,
-    dynamic originalError,
-    StackTrace? stackTrace,
-  }) : super(
-          message: message,
-          code: code,
-          originalError: originalError,
-          stackTrace: stackTrace,
-        );
+    required super.message,
+    required super.code,
+    super.originalError,
+    super.stackTrace,
+  });
 }
 
 class ServerException extends AppException {
   ServerException({
-    required String message,
-    required String code,
-    dynamic originalError,
-    StackTrace? stackTrace,
-  }) : super(
-          message: message,
-          code: code,
-          originalError: originalError,
-          stackTrace: stackTrace,
-        );
+    required super.message,
+    required super.code,
+    super.originalError,
+    super.stackTrace,
+  });
 }

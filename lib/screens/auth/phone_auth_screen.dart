@@ -87,7 +87,7 @@ class _PhoneAuthScreenState extends ConsumerState<PhoneAuthScreen>
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Unable to send OTP. Please try again.'),
           backgroundColor: Colors.redAccent,
         ),
@@ -355,9 +355,9 @@ class _PhoneAuthScreenState extends ConsumerState<PhoneAuthScreen>
                   const SizedBox(height: 24),
 
                   // Secure note
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(Icons.shield_outlined,
                           color: AppColors.textMuted, size: 14),
                       SizedBox(width: 6),

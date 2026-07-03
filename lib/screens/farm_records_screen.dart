@@ -32,7 +32,11 @@ class FarmRecordsScreen extends StatelessWidget {
   ];
 
   final List<ChatHistory> _history = [
-    ChatHistory(id: '1', title: 'Regional tracking containing...', lastMessage: '', updatedAt: DateTime.now()),
+    ChatHistory(
+        id: '1',
+        title: 'Regional tracking containing...',
+        lastMessage: '',
+        updatedAt: DateTime.now()),
   ];
 
   @override
@@ -49,7 +53,7 @@ class FarmRecordsScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            AcadesAppBar(),
+            const AcadesAppBar(),
             const Divider(height: 1),
             Expanded(
               child: ListView(
@@ -172,8 +176,7 @@ class _RecordCard extends StatelessWidget {
             ),
           ),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: record.statusColor.withOpacity(0.12),
               borderRadius: BorderRadius.circular(12),

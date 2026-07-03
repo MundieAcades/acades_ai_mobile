@@ -142,9 +142,9 @@ class _SplashScreenState extends State<SplashScreen>
                   position: _textSlide,
                   child: FadeTransition(
                     opacity: _textOpacity,
-                    child: Column(
+                    child: const Column(
                       children: [
-                        const Text(
+                        Text(
                           'Acades AI',
                           style: TextStyle(
                             fontSize: 34,
@@ -153,7 +153,7 @@ class _SplashScreenState extends State<SplashScreen>
                             letterSpacing: -0.5,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Text(
                           'Your AI farming companion',
                           style: TextStyle(
@@ -217,7 +217,9 @@ class _PulseDotsState extends State<_PulseDots> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    for (final c in _ctrls) c.dispose();
+    for (final c in _ctrls) {
+      c.dispose();
+    }
     super.dispose();
   }
 
