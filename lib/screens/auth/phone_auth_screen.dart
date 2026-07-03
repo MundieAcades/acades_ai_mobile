@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/app_theme.dart';
+import '../../providers/auth_provider.dart';
 import '../onboarding/onboarding_flow.dart';
 import 'otp_screen.dart';
 import 'terms_screen.dart';
 
-class PhoneAuthScreen extends StatefulWidget {
+class PhoneAuthScreen extends ConsumerStatefulWidget {
   final FarmerProfile profile;
   const PhoneAuthScreen({super.key, required this.profile});
 
   @override
-  State<PhoneAuthScreen> createState() => _PhoneAuthScreenState();
+  ConsumerState<PhoneAuthScreen> createState() => _PhoneAuthScreenState();
 }
 
-class _PhoneAuthScreenState extends State<PhoneAuthScreen>
+class _PhoneAuthScreenState extends ConsumerState<PhoneAuthScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _phoneCtrl = TextEditingController();
   bool _agreedToTerms = false;
@@ -49,34 +51,51 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
   bool get _canProceed =>
       _phoneCtrl.text.length >= 7 && _agreedToTerms && !_isLoading;
 
+  String get _normalizedPhone {
+    return '$_selectedCode${_phoneCtrl.text.trim()}'
+        .replaceAll(RegExp(r'\s+'), '');
+  }
+
   Future<void> _sendOtp() async {
     if (!_canProceed) return;
     FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
 
-    // Simulate network call
-    await Future.delayed(const Duration(milliseconds: 1400));
+    try {
+      await ref
+          .read(authProvider.notifier)
+          .signUpWithPhone(_normalizedPhone, widget.profile.toModel());
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    Navigator.push(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => OtpScreen(
-          phone: '$_selectedCode ${_phoneCtrl.text}',
-          profile: widget.profile,
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => OtpScreen(
+            phone: _normalizedPhone,
+            profile: widget.profile,
+          ),
+          transitionsBuilder: (_, anim, __, child) => SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(1, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
+            child: child,
+          ),
+          transitionDuration: const Duration(milliseconds: 350),
         ),
-        transitionsBuilder: (_, anim, __, child) => SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
-          child: child,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to send OTP. Please try again.'),
+          backgroundColor: Colors.redAccent,
         ),
-        transitionDuration: const Duration(milliseconds: 350),
-      ),
-    );
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -147,8 +166,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                     decoration: BoxDecoration(
                       color: AppColors.inputBg,
                       borderRadius: BorderRadius.circular(16),
-                      border:
-                          Border.all(color: AppColors.primaryBorder, width: 0.5),
+                      border: Border.all(
+                          color: AppColors.primaryBorder, width: 0.5),
                     ),
                     child: Row(
                       children: [
@@ -234,7 +253,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
 
                   // Terms & conditions row
                   GestureDetector(
-                    onTap: () => setState(() => _agreedToTerms = !_agreedToTerms),
+                    onTap: () =>
+                        setState(() => _agreedToTerms = !_agreedToTerms),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -296,8 +316,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                                     onTap: () => Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) =>
-                                            const TermsScreen(showPrivacy: true),
+                                        builder: (_) => const TermsScreen(
+                                            showPrivacy: true),
                                       ),
                                     ),
                                     child: const Text(
@@ -393,7 +413,8 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen>
                       style: const TextStyle(
                           fontSize: 15, fontWeight: FontWeight.w500)),
                   trailing: _selectedCode == code
-                      ? const Icon(Icons.check_rounded, color: AppColors.primary)
+                      ? const Icon(Icons.check_rounded,
+                          color: AppColors.primary)
                       : null,
                   onTap: () {
                     setState(() => _selectedCode = code);

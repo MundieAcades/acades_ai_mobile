@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/app_theme.dart';
+import '../../providers/auth_provider.dart';
 import '../onboarding/onboarding_flow.dart';
 import '../home_screen.dart';
 
-class OtpScreen extends StatefulWidget {
+class OtpScreen extends ConsumerStatefulWidget {
   final String phone;
   final FarmerProfile profile;
 
@@ -16,10 +18,11 @@ class OtpScreen extends StatefulWidget {
   });
 
   @override
-  State<OtpScreen> createState() => _OtpScreenState();
+  ConsumerState<OtpScreen> createState() => _OtpScreenState();
 }
 
-class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
+class _OtpScreenState extends ConsumerState<OtpScreen>
+    with TickerProviderStateMixin {
   final List<TextEditingController> _ctrls =
       List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _nodes = List.generate(6, (_) => FocusNode());
@@ -117,11 +120,15 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
       _isVerifying = true;
       _hasError = false;
     });
-    await Future.delayed(const Duration(milliseconds: 1200));
-    if (!mounted) return;
 
-    // Demo: "123456" succeeds, anything else fails
-    if (_otp == '123456') {
+    try {
+      await ref.read(authProvider.notifier).verifyOtpAndComplete(
+            widget.phone,
+            _otp,
+            widget.profile.toModel(),
+          );
+
+      if (!mounted) return;
       _successCtrl.forward();
       await Future.delayed(const Duration(milliseconds: 800));
       if (!mounted) return;
@@ -134,11 +141,12 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
         ),
         (_) => false,
       );
-    } else {
+    } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isVerifying = false;
         _hasError = true;
-        _errorMsg = 'Incorrect code. Please try again.';
+        _errorMsg = 'Unable to verify code. Please try again.';
       });
       _shakeCtrl.forward(from: 0);
       for (final c in _ctrls) c.clear();
@@ -325,7 +333,7 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                 const SizedBox(height: 16),
                 Center(
                   child: const Text(
-                    'Hint: use 123456 to demo login',
+                    'Enter the 6-digit code sent to your phone.',
                     style: TextStyle(
                       fontSize: 11,
                       color: AppColors.textMuted,

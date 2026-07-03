@@ -57,7 +57,7 @@ class _UsernameStepState extends State<UsernameStep> {
             },
             style: const TextStyle(
               fontSize: 16,
-              color: Colors.back,
+              color: Colors.black,
               fontWeight: FontWeight.w500,
             ),
             decoration: InputDecoration(

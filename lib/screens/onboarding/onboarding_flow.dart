@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../models/farmer_profile.dart';
 import '../auth/phone_auth_screen.dart';
 import 'steps/welcome_step.dart';
 import 'steps/username_step.dart';
@@ -38,6 +39,17 @@ class FarmerProfile {
       district: district ?? this.district,
       landSize: landSize ?? this.landSize,
       gender: gender ?? this.gender,
+    );
+  }
+
+  FarmerProfileModel toModel() {
+    return FarmerProfileModel(
+      username: username,
+      crops: crops,
+      district: district,
+      landSize: landSize,
+      gender: gender,
+      phoneNumber: null,
     );
   }
 }
