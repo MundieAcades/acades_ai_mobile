@@ -11,12 +11,17 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+    // Configure Kotlin JVM toolchain and compiler options using the modern DSL
+    kotlin {
+        jvmToolchain(11)
+        compilerOptions {
+            languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_8)
+            apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_8)
+        }
     }
 
     defaultConfig {
@@ -42,3 +47,5 @@ android {
 flutter {
     source = "../.."
 }
+
+// Compiler options configured via the `kotlin { compilerOptions { ... } }` DSL above.

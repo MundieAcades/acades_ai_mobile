@@ -322,3 +322,5 @@ USING (bucket_id = 'farm-images');
 -- Example: Insert sample weather data for testing
 -- INSERT INTO weather_data (user_id, district, temperature_min, temperature_max, rainfall_mm, humidity_percent, wind_speed_kmh, weather_condition, forecast_date)
 -- VALUES (current_user_id(), 'Lilongwe', 15.5, 28.3, 5.2, 65, 12.4, 'Partly Cloudy', CURRENT_DATE + INTERVAL '1 day');
+
+

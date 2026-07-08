@@ -1,41 +1,52 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // Required for FunctionResponse
 import '../theme/app_theme.dart';
 import '../models/chat_message.dart';
 import '../widgets/shared_widgets.dart';
 import '../widgets/add_file_sheet.dart';
 import '../widgets/acades_drawer.dart';
+import '../services/supabase_service.dart'; // Clean integration with your existing service
+import '../providers/auth_provider.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends ConsumerStatefulWidget {
   final String initialMessage;
+  final String? sessionId;
 
-  const ChatScreen({super.key, required this.initialMessage});
+  const ChatScreen({
+    super.key,
+    required this.initialMessage,
+    this.sessionId,
+  });
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   bool _isLoading = false;
   String _streamingText = '';
   bool _isStreaming = false;
+  List<ChatHistory> _realHistory = [];
 
-  // Mock AI responses
-  final List<String> _mockResponses = [
-    'Kuti mulime soya m\'madera a monga ku Lilongwe kapena kwina kulikonse m\'dziko la Malawi, muyenera kutsatira njira zotsatirazi:\n\n**1. Kukonza Munda ndi Nthawi Yobzala**\n\n• **Nthawi Yabwino:** Yambani kulima ndi kugalauza munda usanakwane mwezi wa November. Izi zimathandiza kuti mvula ikayamba, madzi alowe bwino ndipo udzu ufe.\n• **Mabedi/Midzere:** Konzani midzere yokhala ndi m\'lifupi (mwala) wa pakati pa 75 cm mpaka 90 cm.\n\n**2. Kusankha Mbewu Zabwino**\n\n• Sankhani mbewu za soya zomwe zapokelera chitukuko ku Malawi.\n• Gwiritsani ntchito mankhwala a Inoculum pa njere musanabzale kuti mukolole bwino.',
-    'For pest management on your maize crop, here are the key steps:\n\n**1. Early Detection**\n• Scout your fields every 3-4 days during the growing season\n• Look for Fall Armyworm damage — ragged leaf edges and frass in the whorl\n\n**2. Organic Controls**\n• Apply neem-based sprays in the early morning or evening\n• Encourage natural predators like parasitic wasps\n\n**3. Chemical Controls (if needed)**\n• Use registered pesticides according to MoAIWD guidelines\n• Always wear protective gear when applying chemicals',
-    'The weather forecast for Lilongwe this week shows:\n\n🌤 **Monday–Wednesday:** Partly cloudy, temperatures 22–28°C. Good conditions for field work.\n\n🌧 **Thursday–Friday:** Rain expected — 15–25mm. This is ideal for recently planted crops.\n\n☀️ **Weekend:** Clear skies returning. Plan fertilizer application for Saturday morning.\n\n**Farming tip:** Avoid spraying pesticides before Thursday\'s rain — wait until Sunday for best effectiveness.',
-  ];
-
-  int _responseIndex = 0;
+  // Tracks which chat_sessions row the current conversation belongs to.
+  // Null until either an existing session is opened, or the first message
+  // in a brand-new conversation has been sent.
+  String? _activeSessionId;
 
   @override
   void initState() {
     super.initState();
-    if (widget.initialMessage.isNotEmpty) {
+    _loadChatHistory();
+
+    if (widget.sessionId != null) {
+      _activeSessionId = widget.sessionId;
+      _loadMessagesForSession(widget.sessionId!);
+    } else if (widget.initialMessage.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _sendMessage(widget.initialMessage);
       });
@@ -87,12 +98,42 @@ class _ChatScreenState extends State<ChatScreen> {
     _inputController.clear();
     _scrollToBottom();
 
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 800));
+    // ──────────────────────────────────────────────────────────────
+    // LIVE AI CONNECTION VIA SUPABASE EDGE FUNCTION
+    // ──────────────────────────────────────────────────────────────
+    String response = '';
+    try {
+      final FunctionResponse res =
+          await SupabaseService.client.functions.invoke(
+        'ai_chabot',
+        body: {
+          'user_question': text.trim(),
+          'user_id': SupabaseService.currentUserId,
+          // Reuse the same chat session across the conversation instead of
+          // letting the edge function create a brand-new session per turn.
+          if (_activeSessionId != null) 'session_id': _activeSessionId,
+          // 'farm_id': 1 // (Optional) Link current farm identifier if needed
+        },
+      );
 
-    // Simulate SSE streaming
-    final response = _mockResponses[_responseIndex % _mockResponses.length];
-    _responseIndex++;
+      if (res.status == 200) {
+        final Map<String, dynamic> data = res.data;
+        response =
+            data['answer'] ?? 'Error occured try again!! (No answer received).';
+
+        // Pick up the session id the backend used/created, so subsequent
+        // messages in this screen continue the same conversation thread.
+        final returnedSessionId = data['session_id']?.toString();
+        if (returnedSessionId != null && returnedSessionId.isNotEmpty) {
+          _activeSessionId = returnedSessionId;
+        }
+      } else {
+        response = 'Error: Server returned status ${res.status}';
+      }
+    } catch (e) {
+      response = 'Error: Failed to connect to server, try again: $e';
+    }
+    // ──────────────────────────────────────────────────────────────
 
     setState(() {
       _isLoading = false;
@@ -100,7 +141,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _streamingText = '';
     });
 
-    // Stream text word by word
+    // Stream text word by word (Your exact unchanged typewriter effect)
     final words = response.split(' ');
     for (int i = 0; i < words.length; i++) {
       await Future.delayed(const Duration(milliseconds: 28));
@@ -111,7 +152,6 @@ class _ChatScreenState extends State<ChatScreen> {
       if (i % 8 == 0) _scrollToBottom();
     }
 
-    // Finalize streaming message
     final aiMsg = ChatMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       text: _streamingText,
@@ -126,6 +166,10 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     _scrollToBottom();
+
+    // Refresh the sidebar's session list so a brand-new conversation shows
+    // up immediately without waiting for the next screen open.
+    _loadChatHistory();
   }
 
   void _openAddFile() {
@@ -150,54 +194,98 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  final List<ChatHistory> _history = [
-    ChatHistory(
-        id: '1',
-        title: 'Regional tracking containing...',
-        lastMessage: '',
-        updatedAt: DateTime.now()),
-    ChatHistory(
-        id: '2',
-        title: 'Soya planting guide for Lilongwe',
-        lastMessage: '',
-        updatedAt: DateTime.now()),
-    ChatHistory(
-        id: '3',
-        title: 'Pest detection results — maize',
-        lastMessage: '',
-        updatedAt: DateTime.now()),
-    ChatHistory(
-        id: '4',
-        title: 'Weather forecast Lilongwe',
-        lastMessage: '',
-        updatedAt: DateTime.now()),
-    ChatHistory(
-        id: '5',
-        title: 'How to apply Inoculum on soya',
-        lastMessage: '',
-        updatedAt: DateTime.now()),
-  ];
+  Future<void> _loadChatHistory() async {
+    try {
+      final userId = SupabaseService.currentUserId;
+      if (userId == null) return;
+
+      final List<dynamic> data = await SupabaseService.client
+          .from('chat_sessions')
+          .select('id, title, topic, created_at')
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+
+      if (!mounted) return;
+
+      setState(() {
+        _realHistory = data.map((item) {
+          return ChatHistory(
+            id: item['id'].toString(),
+            title: item['title'] ?? 'Zokhudza Ulimi',
+            lastMessage: item['topic'] ?? 'Agriculture',
+            updatedAt: DateTime.parse(item['created_at']),
+          );
+        }).toList();
+      });
+    } catch (e) {
+      debugPrint('Error loading chat history: $e');
+    }
+  }
+
+  Future<void> _loadMessagesForSession(String sessionId) async {
+    setState(() {
+      _isLoading = true;
+      _messages.clear();
+    });
+
+    try {
+      final List<dynamic> data = await SupabaseService.client
+          .from('chat_messages')
+          .select('id, role, content, created_at')
+          .eq('session_id', sessionId)
+          .order('created_at', ascending: true);
+
+      if (!mounted) return;
+
+      setState(() {
+        for (final msg in data) {
+          _messages.add(
+            ChatMessage(
+              id: msg['id'].toString(),
+              text: msg['content'] ?? '',
+              isUser: msg['role'] == 'user',
+              timestamp: DateTime.parse(msg['created_at']),
+            ),
+          );
+        }
+        _activeSessionId = sessionId;
+        _isLoading = false;
+      });
+      _scrollToBottom();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      _showSnack('Failed to load messages: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
       drawer: AcadesDrawer(
-        chatHistory: _history,
-        onNewChat: () => Navigator.pop(context),
+        chatHistory: _realHistory,
+        onNewChat: () {
+          Navigator.pop(context);
+          setState(() {
+            _messages.clear();
+            _inputController.clear();
+            _activeSessionId = null;
+          });
+        },
         onSearchChats: () => _showSnack('Search chats...'),
         onFarmRecords: () => _showSnack('Farm records...'),
         onWeatherAlerts: () => _showSnack('Weather alerts...'),
-        onHistoryTap: (_) {},
+        onHistoryTap: (historyItem) {
+          Navigator.pop(context);
+          _loadMessagesForSession(historyItem.id);
+        },
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // App bar
             _buildAppBar(context),
             const Divider(height: 1),
-
-            // Messages list
             Expanded(
               child: _messages.isEmpty && !_isLoading && !_isStreaming
                   ? _buildEmptyState()
@@ -220,8 +308,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       },
                     ),
             ),
-
-            // Input bar
             ChatInputBar(
               controller: _inputController,
               onSend: () => _sendMessage(_inputController.text),
@@ -234,7 +320,57 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  String _getInitials(String? primary, [String? secondary, String? tertiary]) {
+    final parts = <String>[];
+    if (primary != null && primary.trim().isNotEmpty) {
+      parts.add(primary.trim());
+    }
+    if (secondary != null && secondary.trim().isNotEmpty) {
+      parts.add(secondary.trim());
+    }
+    if (tertiary != null && tertiary.trim().isNotEmpty) {
+      parts.add(tertiary.trim());
+    }
+
+    final source = parts.isNotEmpty ? parts.first : '';
+    final words =
+        source.split(RegExp(r'\s+')).where((word) => word.isNotEmpty).toList();
+
+    if (words.isEmpty) {
+      return 'U';
+    }
+
+    if (words.length == 1) {
+      final value = words.first.replaceAll(RegExp(r'[^A-Za-z0-9]'), '');
+      return value.isNotEmpty ? value.substring(0, 1).toUpperCase() : 'U';
+    }
+
+    return '${words.first.substring(0, 1).toUpperCase()}${words.last.substring(0, 1).toUpperCase()}';
+  }
+
   Widget _buildAppBar(BuildContext context) {
+    final userAsync = ref.watch(currentUserProvider);
+    final initials = userAsync.when(
+      data: (user) {
+        if (user == null) {
+          final supabaseUser = SupabaseService.currentUser;
+          return _getInitials(
+            supabaseUser?.userMetadata?['full_name']?.toString(),
+            supabaseUser?.email,
+            supabaseUser?.phone,
+          );
+        }
+
+        return _getInitials(
+          user.username,
+          user.email,
+          user.phoneNumber,
+        );
+      },
+      loading: () => 'U',
+      error: (_, __) => 'U',
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Row(
@@ -266,10 +402,10 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: Color(0xFF4CAF50),
                 shape: BoxShape.circle,
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
-                  'MK',
-                  style: TextStyle(
+                  initials,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -483,7 +619,6 @@ class _AiBubble extends StatelessWidget {
                 child: _MarkdownText(text: message.text),
               ),
               const SizedBox(height: 6),
-              // Reaction actions
               Row(
                 children: [
                   _ActionIcon(
@@ -546,7 +681,6 @@ class _MarkdownText extends StatelessWidget {
       if (li > 0) spans.add(const TextSpan(text: '\n'));
 
       if (line.startsWith('**') && line.endsWith('**') && line.length > 4) {
-        // Heading bold
         spans.add(TextSpan(
           text: line.substring(2, line.length - 2),
           style: const TextStyle(
@@ -556,7 +690,6 @@ class _MarkdownText extends StatelessWidget {
           ),
         ));
       } else if (line.startsWith('• ')) {
-        // Bullet
         spans.add(const TextSpan(
           text: '• ',
           style:

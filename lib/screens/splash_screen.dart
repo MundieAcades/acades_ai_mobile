@@ -127,10 +127,9 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          Icons.eco_rounded,
-                          color: AppColors.primary,
-                          size: 52,
+                        child: Image.asset(
+                          'assets/images/acades_ai.png',
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),

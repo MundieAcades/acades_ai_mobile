@@ -4,6 +4,7 @@ import '../widgets/shared_widgets.dart';
 import '../widgets/add_file_sheet.dart';
 import '../widgets/acades_drawer.dart';
 import '../models/chat_message.dart';
+import '../services/supabase_service.dart';
 import 'chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,38 +17,47 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _inputController = TextEditingController();
 
-  final List<ChatHistory> _history = [
-    ChatHistory(
-      id: '1',
-      title: 'Regional tracking containing...',
-      lastMessage: '',
-      updatedAt: DateTime.now(),
-    ),
-    ChatHistory(
-      id: '2',
-      title: 'Soya planting guide for Lilongwe',
-      lastMessage: '',
-      updatedAt: DateTime.now(),
-    ),
-    ChatHistory(
-      id: '3',
-      title: 'Pest detection results — maize',
-      lastMessage: '',
-      updatedAt: DateTime.now(),
-    ),
-    ChatHistory(
-      id: '4',
-      title: 'Weather forecast Lilongwe',
-      lastMessage: '',
-      updatedAt: DateTime.now(),
-    ),
-    ChatHistory(
-      id: '5',
-      title: 'How to apply Inoculum on soya',
-      lastMessage: '',
-      updatedAt: DateTime.now(),
-    ),
-  ];
+  List<ChatHistory> _history = [];
+  bool _isLoadingHistory = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadChatHistory();
+  }
+
+  Future<void> _loadChatHistory() async {
+    final userId = SupabaseService.currentUserId;
+    if (userId == null) return;
+
+    setState(() => _isLoadingHistory = true);
+
+    try {
+      final List<dynamic> data = await SupabaseService.client
+          .from('chat_sessions')
+          .select('id, title, topic, created_at')
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+
+      if (!mounted) return;
+
+      setState(() {
+        _history = data.map((item) {
+          return ChatHistory(
+            id: item['id'].toString(),
+            title: item['title'] ?? 'Zokhudza Ulimi',
+            lastMessage: item['topic'] ?? 'Agriculture',
+            updatedAt: DateTime.parse(item['created_at']),
+          );
+        }).toList();
+        _isLoadingHistory = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading chat history: $e');
+      if (!mounted) return;
+      setState(() => _isLoadingHistory = false);
+    }
+  }
 
   void _startChat(String initialMessage) {
     if (initialMessage.trim().isEmpty) return;
@@ -56,8 +66,17 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(
         builder: (_) => ChatScreen(initialMessage: initialMessage.trim()),
       ),
-    );
+    ).then((_) => _loadChatHistory());
     _inputController.clear();
+  }
+
+  void _openExistingSession(String sessionId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(initialMessage: '', sessionId: sessionId),
+      ),
+    ).then((_) => _loadChatHistory());
   }
 
   void _openAddFile() {
@@ -93,16 +112,17 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       drawer: AcadesDrawer(
         chatHistory: _history,
-        onNewChat: () => _startChat(''),
+        onNewChat: () {
+          Navigator.pop(context);
+          _startChat('');
+        },
         onSearchChats: () => _showSnack('Search chats...'),
         onFarmRecords: () => _showSnack('Farm records...'),
         onWeatherAlerts: () => _showSnack('Weather alerts...'),
-        onHistoryTap: (h) => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const ChatScreen(initialMessage: ''),
-          ),
-        ),
+        onHistoryTap: (h) {
+          Navigator.pop(context);
+          _openExistingSession(h.id);
+        },
       ),
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.homeGradient),
