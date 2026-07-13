@@ -6,19 +6,19 @@ plugins {
 }
 
 android {
-    namespace = "com.example.app"
+    namespace = "com.example.mlimi"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // Configure Kotlin JVM toolchain and compiler options using the modern DSL
     kotlin {
-        jvmToolchain(11)
+        jvmToolchain(17)
         compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
             languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_8)
             apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_8)
         }
@@ -26,7 +26,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.app"
+        applicationId = "com.example.mlimi"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -44,8 +44,7 @@ android {
     }
 }
 
+
 flutter {
     source = "../.."
 }
-
-// Compiler options configured via the `kotlin { compilerOptions { ... } }` DSL above.

@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   // Primary lime/sage green accent
-  static const Color primary = Color(0xFFF198643);
+  static const Color primary = Color(0xfff198643);
   static const Color primaryLight = Color(0xFF198643);
   static const Color primarySurface = Color(0xFFEBFFCA);
   static const Color primaryBorder = Color(0xFFD4E8C2);

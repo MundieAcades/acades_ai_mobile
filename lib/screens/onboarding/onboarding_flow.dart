@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../models/farmer_profile.dart';
 import '../auth/phone_auth_screen.dart';
+import '../../core/logger.dart';
+import '../../services/supabase_service.dart';
+import '../home_screen.dart';
 import 'steps/welcome_step.dart';
 import 'steps/username_step.dart';
 import 'steps/crop_step.dart';
@@ -66,6 +69,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
   final PageController _pageController = PageController();
   int _currentStep = 0;
   FarmerProfile _profile = FarmerProfile();
+  bool _isSaving = false;
 
   // Steps: 0=welcome, 1=username, 2=crops, 3=location, 4=landsize, 5=gender, 6=allset
   static const int _totalSteps = 7;
@@ -138,6 +142,14 @@ class _OnboardingFlowState extends State<OnboardingFlow>
   }
 
   void _goToAuth() {
+    // If user is already authenticated, persist their onboarding data
+    // directly to the user's profile and go to Home. Otherwise continue
+    // to phone authentication flow.
+    if (SupabaseService.isAuthenticated) {
+      _saveProfileAndNavigate();
+      return;
+    }
+
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => PhoneAuthScreen(profile: _profile),
@@ -151,6 +163,42 @@ class _OnboardingFlowState extends State<OnboardingFlow>
         transitionDuration: const Duration(milliseconds: 400),
       ),
     );
+  }
+
+  Future<void> _saveProfileAndNavigate() async {
+    if (_isSaving) return;
+    final userId = SupabaseService.currentUserId;
+    if (userId == null) {
+      AppLogger.warning('Tried to save onboarding for anonymous user');
+      return _goToAuth();
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      await SupabaseService.updateUserProfile(userId, {
+        'farmer_profile': _profile.toModel().toJson(),
+        'username': _profile.username,
+      });
+
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const HomeScreen(),
+          transitionsBuilder: (_, anim, __, child) =>
+              FadeTransition(opacity: anim, child: child),
+          transitionDuration: const Duration(milliseconds: 400),
+        ),
+      );
+    } catch (e, st) {
+      AppLogger.error('Failed to save onboarding profile', e, st);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to save profile. Please try again.')),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+    }
   }
 
   bool get _showProgressBar =>
@@ -326,4 +374,4 @@ class _OnboardingFlowState extends State<OnboardingFlow>
       ),
     );
   }
-}
+    }

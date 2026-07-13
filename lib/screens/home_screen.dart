@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'detection_screen.dart';
 import '../widgets/shared_widgets.dart';
 import '../widgets/add_file_sheet.dart';
 import '../widgets/acades_drawer.dart';
@@ -271,6 +272,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.assignment_outlined,
                 label: 'Farm Records',
                 onTap: () => _startChat('Help me manage my farm records'),
+              ),
+              const SizedBox(width: 10),
+              QuickActionChip(
+                icon: Icons.local_florist,
+                label: 'Detect Disease',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DetectionScreen()),
+                ),
               ),
             ],
           ),

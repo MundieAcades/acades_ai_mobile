@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/supabase_service.dart';
+import 'home_screen.dart';
 import 'onboarding/onboarding_flow.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -77,9 +79,13 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigate() {
+    final destination = SupabaseService.isAuthenticated
+        ? const HomeScreen()
+        : const OnboardingFlow();
+
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const OnboardingFlow(),
+        pageBuilder: (_, __, ___) => destination,
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
         transitionDuration: const Duration(milliseconds: 500),
